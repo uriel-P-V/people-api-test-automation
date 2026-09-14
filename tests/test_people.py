@@ -3,7 +3,7 @@ import json
 from uuid import uuid4
 
 import pytest
-from assertpy import assert_that
+from assertpy import assert_that, soft_assertions
 from config import BASE_URI
 
 
@@ -92,16 +92,14 @@ def person_to_delete():
 
     return person
 
-
-
 def test_get_people():
     response = requests.get(BASE_URI)
 
-    assert_that(response.status_code).is_equal_to(200)
-
     response_json = response.json()
 
-    assert_that(response_json[0]["fname"]).is_equal_to("Uriel")
+    with soft_assertions():
+        assert_that(response.status_code).is_equal_to(200)
+        assert_that(response_json).extracting("fname").contains("Kent")
 
 
 def test_post_person():

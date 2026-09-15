@@ -1,11 +1,14 @@
+from utils import read_file
 import requests
 import json
 from uuid import uuid4
+import random
+
 
 import pytest
 from assertpy import assert_that, soft_assertions
 from config import BASE_URI
-
+from jsonpath_ng import parse
 
 @pytest.fixture
 def get_people():
@@ -14,6 +17,15 @@ def get_people():
     response = requests.get(BASE_URI)
 
     yield response.json()
+
+@pytest.fixture
+def create_data():
+    payload = read_file("create_person.json")
+
+    random_no = random.randint(0, 1000)
+    payload["lname"] = f"Olabini{random_no}"
+
+    yield payload
 
 @pytest.fixture
 def new_person():
@@ -88,6 +100,33 @@ def person_to_delete():
             break
 
     return person
+
+def create_person_with_unique_last_name(body=None):
+    if body is None:
+        unique_last_name = f"User {uuid4()}"
+
+        payload = json.dumps({
+            "fname": "New",
+            "lname": unique_last_name
+        })
+    else:
+        unique_last_name = body["lname"]
+        payload = json.dumps(body)
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    response = requests.post(
+        url=BASE_URI,
+        data=payload,
+        headers=headers
+    )
+
+    assert_that(response.status_code).is_equal_to(204)
+
+    return unique_last_name
 
 def test_get_people():
     response = requests.get(BASE_URI)
@@ -169,3 +208,26 @@ def test_put_person(new_person):
 
 def test_new_person(new_person):
     assert_that(new_person["fname"]).is_equal_to("Test")
+
+def test_read_json_file():
+    data = read_file("create_person.json")
+
+    assert_that(data["fname"]).is_equal_to("New")
+    assert_that(data["lname"]).is_equal_to("Template")
+
+
+def test_create_data_fixture(create_data):
+    assert_that(create_data["fname"]).is_equal_to("New")
+    assert_that(create_data["lname"]).starts_with("Olabini")
+
+
+def test_person_can_be_added_with_a_json_template(create_data):
+    unique_last_name = create_person_with_unique_last_name(create_data)
+
+    response = requests.get(BASE_URI)
+    peoples = response.json()
+    jsonpath_expr = parse("$.[*].lname")
+
+    result = [match.value for match in jsonpath_expr.find(peoples)]
+
+    assert_that(result).contains(unique_last_name)

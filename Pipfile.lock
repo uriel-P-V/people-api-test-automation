@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2b25e4d170f50758ef5568e30142d0e12e2ead20f7d179ff7f304dbc16ddb03b"
+            "sha256": "53cdb03394af8c93fed9eee805201b9cf04c246d24ed15ba934aedb5bcbfb1b4"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -225,6 +225,14 @@
             ],
             "markers": "python_version >= '3.10'",
             "version": "==2.3.0"
+        },
+        "jsonpath-ng": {
+            "hashes": [
+                "sha256:54252968134b5e549ea5b872f1df1168bd7defe1a52fed5a358c194e1943ddc3",
+                "sha256:b8dde192f8af58d646fc031fac9c99fe4d00326afc4148f1f043c601a8cfe138"
+            ],
+            "index": "pypi",
+            "version": "==1.8.0"
         },
         "lxml": {
             "hashes": [

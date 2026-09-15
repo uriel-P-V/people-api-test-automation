@@ -15,9 +15,6 @@ def get_people():
 
     yield response.json()
 
-    print("DESPUÉS DEL TEST")
-
-
 @pytest.fixture
 def new_person():
     person = {

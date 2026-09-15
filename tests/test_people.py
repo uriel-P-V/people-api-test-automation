@@ -4,11 +4,18 @@ import json
 from uuid import uuid4
 import random
 
-
 import pytest
 from assertpy import assert_that, soft_assertions
 from config import BASE_URI
 from jsonpath_ng import parse
+from cerberus import Validator
+
+schema = {
+    "fname": {"type": "string"},
+    "lname": {"type": "string"},
+    "person_id": {"type": "integer"},
+    "timestamp": {"type": "string"}
+}
 
 @pytest.fixture
 def get_people():
@@ -231,3 +238,23 @@ def test_person_can_be_added_with_a_json_template(create_data):
     result = [match.value for match in jsonpath_expr.find(peoples)]
 
     assert_that(result).contains(unique_last_name)
+
+def test_read_one_operation_has_expected_schema():
+    response = requests.get(f"{BASE_URI}/1")
+    person = json.loads(response.text)
+
+    validator = Validator(schema, require_all=True)
+    is_valid = validator.validate(person)
+
+    assert_that(is_valid, description=validator.errors).is_true()
+
+def test_read_all_operation_has_expected_schema():
+    response = requests.get(f"{BASE_URI}")
+    persons = json.loads(response.text)
+
+    validator = Validator(schema, require_all=True)
+
+    with soft_assertions():
+        for person in persons:
+            is_valid = validator.validate(person)
+            assert_that(is_valid, description=validator.errors).is_true()
